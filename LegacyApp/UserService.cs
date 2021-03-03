@@ -6,16 +6,9 @@ namespace LegacyApp
     {
         public bool AddUser(string firname, string surname, string email, DateTime dateOfBirth, int clientId)
         {
-            if (string.IsNullOrEmpty(firname) || string.IsNullOrEmpty(surname))
-            {
+            if (NamesAreBlank(firname,surname) || CheckEmail(email)) {
                 return false;
             }
-
-            if (!email.Contains("@") && !email.Contains("."))
-            {
-                return false;
-            }
-            //p1
             var now = Now();
             int age = now.Year - dateOfBirth.Year;
             if (now.Month < dateOfBirth.Month || now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day) age--;
@@ -25,8 +18,7 @@ namespace LegacyApp
                 return false;
             }
             //p2
-            var clientRepository = new ClientRepository();
-            var client = clientRepository.GetById(clientId);
+            var client = GetClientById(clientId);
 
             var user = new User
             {
@@ -45,25 +37,17 @@ namespace LegacyApp
             {
                 user.HasCreditLimit = true;
 
-                using (var userCreditService = new UserCreditServiceClient())
-                {
-                    var creditLimit =
-                        userCreditService.GetCreditLimit(user.FirstName, user.Surname, user.DateOfBirth);
+                var creditLimit = GetCreditLimit(user);
 
-                    user.CreditLimit = creditLimit * 2;
-                }
+                user.CreditLimit = creditLimit * 2;
             }
             else
             {
                 user.HasCreditLimit = true;
 
-                using (var userCreditService = new UserCreditServiceClient())
-                {
-                    var creditLimit =
-                        userCreditService.GetCreditLimit(user.FirstName, user.Surname, user.DateOfBirth);
+                var creditLimit = GetCreditLimit(user);
 
-                    user.CreditLimit = creditLimit;
-                }
+                user.CreditLimit = creditLimit;
             }
 
             if (user.HasCreditLimit && user.CreditLimit < 500)
@@ -71,11 +55,38 @@ namespace LegacyApp
                 return false;
             }
             //p3
-            UserDataAccess.AddUser(user);
+            AddUser(user);
 
             return true;
         }
 
+        protected virtual decimal GetCreditLimit(User user)
+        {
+            decimal creditLimit;
+            using (var userCreditService = new UserCreditServiceClient())
+            {
+                creditLimit =
+                    userCreditService.GetCreditLimit(user.FirstName, user.Surname, user.DateOfBirth);
+            }
+
+            return creditLimit;
+        }
+
         protected virtual DateTime Now() => DateTime.Now;
+
+        protected virtual Client GetClientById(int clientId)
+        {
+            var clientRepository = new ClientRepository();
+            return clientRepository.GetById(clientId);
+        }
+        private bool NamesAreBlank(string firname, string surname)
+        {
+            return string.IsNullOrEmpty(firname) || string.IsNullOrEmpty(surname);
+        }
+        private bool CheckEmail(string email)
+        {
+            return !email.Contains("@") && !email.Contains(".");
+        }
+        protected virtual void AddUser(User user) => UserDataAccess.AddUser(user);
     }
 }

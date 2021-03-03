@@ -15,8 +15,8 @@ namespace LegacyApp
             {
                 return false;
             }
-
-            var now = DateTime.Now;
+            //p1
+            var now = Now();
             int age = now.Year - dateOfBirth.Year;
             if (now.Month < dateOfBirth.Month || now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day) age--;
 
@@ -24,7 +24,7 @@ namespace LegacyApp
             {
                 return false;
             }
-
+            //p2
             var clientRepository = new ClientRepository();
             var client = clientRepository.GetById(clientId);
 
@@ -70,10 +70,12 @@ namespace LegacyApp
             {
                 return false;
             }
-
+            //p3
             UserDataAccess.AddUser(user);
 
             return true;
         }
+
+        protected virtual DateTime Now() => DateTime.Now;
     }
 }

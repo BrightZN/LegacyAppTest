@@ -2,7 +2,7 @@
 
 namespace LegacyApp
 {
-    public class ClientRepository
+    public class ClientRepository : IClientRepository
     {
         public Client GetById(int clientId)
         {

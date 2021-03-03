@@ -4,19 +4,27 @@ namespace LegacyApp
 {
     public class UserService
     {
+        private readonly IClientRepository _clientRepository;
+
+        public UserService()
+        {
+            _clientRepository = new ClientRepository();
+        }
+
+        public UserService(IClientRepository clientRepository)
+        {
+            _clientRepository = clientRepository;
+        }
+
         public bool AddUser(string firname, string surname, string email, DateTime dateOfBirth, int clientId)
         {
             if (NamesAreBlank(firname, surname) || CheckEmail(email))
-            {
                 return false;
-            }
 
             if (YoungerThan21(dateOfBirth))
-            {
                 return false;
-            }
-            //p2
-            var client = GetClientById(clientId);
+
+            var client = _clientRepository.GetById(clientId);
 
             var user = new User
             {
@@ -26,13 +34,13 @@ namespace LegacyApp
                 FirstName = firname,
                 Surname = surname
             };
-            ApplyCreditLimit(client, user);
+
+            ApplyCreditLimit(user);
 
             if (CheckCredit(user))
-            {
                 return false;
-            }
-            //p3
+
+            //_userDataAccess.AddUser(user)
             AddUser(user);
 
             return true;
@@ -43,8 +51,10 @@ namespace LegacyApp
             return user.HasCreditLimit && user.CreditLimit < 500;
         }
 
-        private void ApplyCreditLimit(Client client, User user)
+        private void ApplyCreditLimit(User user)
         {
+            var client = user.Client;
+
             if (client.Name == "VeryImportantClient")
             {
                 user.HasCreditLimit = false;
@@ -91,11 +101,6 @@ namespace LegacyApp
 
         protected virtual DateTime Now() => DateTime.Now;
 
-        protected virtual Client GetClientById(int clientId)
-        {
-            var clientRepository = new ClientRepository();
-            return clientRepository.GetById(clientId);
-        }
         private bool NamesAreBlank(string firname, string surname)
         {
             return string.IsNullOrEmpty(firname) || string.IsNullOrEmpty(surname);
@@ -104,6 +109,8 @@ namespace LegacyApp
         {
             return !email.Contains("@") && !email.Contains(".");
         }
-        protected virtual void AddUser(User user) => UserDataAccess.AddUser(user);
+
+        
+        protected virtual void AddUser(User user) => UserDataAccess.AddUser(user);// _userDataAccess.AddUser(user)
     }
 }

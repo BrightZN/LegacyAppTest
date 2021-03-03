@@ -7,7 +7,15 @@ namespace LegacyApp.Tests
 {
     public class UserServiceTests
     {
-        private readonly TestableUserService _sut = new TestableUserService();
+        private readonly TestableClientRepository _clientRepository = new TestableClientRepository();
+
+        private readonly TestableUserService _sut;
+
+        public UserServiceTests()
+        {
+            _sut = new TestableUserService(
+                _clientRepository);
+        }
 
         private class InvalidUserTestCaseData 
             : TheoryData<string, string, string, DateTime, int, DateTime, Client,Decimal,bool>
@@ -61,18 +69,32 @@ namespace LegacyApp.Tests
             bool expected)
         {
             _sut.NowValue = now;
-            _sut.Client = client;
+
+            _clientRepository.Client = client;
+
             _sut.creditLimit = creditLimit;
             bool result = _sut.AddUser(firname, surname, email, dateOfBirth, clientId);
 
             Assert.Equal(expected,result);
             Assert.Equal(expected,_sut.user != null);
         }
+
+        private class TestableClientRepository : IClientRepository
+        {
+            public Client Client { get; set; }
+
+            public Client GetById(int clientId) => Client;
+        }
+
         private class TestableUserService : UserService
         {
-            public DateTime NowValue { get; set; }
+            public TestableUserService(IClientRepository clientRepository)
+                : base(clientRepository)
+            {
 
-            public Client Client { get; set; }
+            }
+
+            public DateTime NowValue { get; set; }
 
             public Decimal creditLimit { get; set; }
 
@@ -80,10 +102,6 @@ namespace LegacyApp.Tests
 
             protected override DateTime Now() => NowValue;
 
-            protected override Client GetClientById(int clientId)
-            {
-                return Client;
-            }
             protected override decimal GetCreditLimit(User user)
             {
                 return creditLimit;

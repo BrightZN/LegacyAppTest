@@ -6,14 +6,12 @@ namespace LegacyApp
     {
         public bool AddUser(string firname, string surname, string email, DateTime dateOfBirth, int clientId)
         {
-            if (NamesAreBlank(firname,surname) || CheckEmail(email)) {
+            if (NamesAreBlank(firname, surname) || CheckEmail(email))
+            {
                 return false;
             }
-            var now = Now();
-            int age = now.Year - dateOfBirth.Year;
-            if (now.Month < dateOfBirth.Month || now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day) age--;
 
-            if (age < 21)
+            if (YoungerThan21(dateOfBirth))
             {
                 return false;
             }
@@ -28,7 +26,25 @@ namespace LegacyApp
                 FirstName = firname,
                 Surname = surname
             };
+            ApplyCreditLimit(client, user);
 
+            if (CheckCredit(user))
+            {
+                return false;
+            }
+            //p3
+            AddUser(user);
+
+            return true;
+        }
+
+        private static bool CheckCredit(User user)
+        {
+            return user.HasCreditLimit && user.CreditLimit < 500;
+        }
+
+        private void ApplyCreditLimit(Client client, User user)
+        {
             if (client.Name == "VeryImportantClient")
             {
                 user.HasCreditLimit = false;
@@ -49,15 +65,16 @@ namespace LegacyApp
 
                 user.CreditLimit = creditLimit;
             }
+        }
 
-            if (user.HasCreditLimit && user.CreditLimit < 500)
-            {
-                return false;
-            }
-            //p3
-            AddUser(user);
+        private bool YoungerThan21(DateTime dateOfBirth)
+        {
+            var now = Now();
+            int age = now.Year - dateOfBirth.Year;
+            if (now.Month < dateOfBirth.Month || now.Month == dateOfBirth.Month && now.Day < dateOfBirth.Day) age--;
 
-            return true;
+            bool youngerThan21 = age < 21;
+            return youngerThan21;
         }
 
         protected virtual decimal GetCreditLimit(User user)

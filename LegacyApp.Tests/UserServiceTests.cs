@@ -18,7 +18,7 @@ namespace LegacyApp.Tests
         }
 
         private class InvalidUserTestCaseData 
-            : TheoryData<string, string, string, DateTime, int, DateTime, Client,Decimal,bool>
+            : TheoryData<string, string, string, DateTime, int, DateTime, Client, decimal, bool>
         {
             public InvalidUserTestCaseData()
             {
@@ -72,11 +72,11 @@ namespace LegacyApp.Tests
 
             _clientRepository.Client = client;
 
-            _sut.creditLimit = creditLimit;
+            _sut.CreditLimit = creditLimit;
             bool result = _sut.AddUser(firname, surname, email, dateOfBirth, clientId);
 
             Assert.Equal(expected,result);
-            Assert.Equal(expected,_sut.user != null);
+            Assert.Equal(expected,_sut.User != null);
         }
 
         private class TestableClientRepository : IClientRepository
@@ -95,21 +95,14 @@ namespace LegacyApp.Tests
             }
 
             public DateTime NowValue { get; set; }
-
-            public Decimal creditLimit { get; set; }
-
-            public User user;
+            public decimal CreditLimit { get; set; }
+            public User User { get; set; }
 
             protected override DateTime Now() => NowValue;
 
-            protected override decimal GetCreditLimit(User user)
-            {
-                return creditLimit;
-            }
-            protected override void AddUser(User user)
-            {
-                this.user = user;
-            }
+            protected override decimal GetCreditLimit(User user) => CreditLimit;
+
+            protected override void AddUser(User user) => User = user;
         }
     }
 }
